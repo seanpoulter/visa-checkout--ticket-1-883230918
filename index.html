@@ -1,0 +1,109 @@
+<html>
+<head>
+<style type="text/css">
+body {
+    margin: 0;
+    padding: 1em;
+}
+ol { padding: 1em }
+li + li {
+    padding-top: .75em;
+    padding-top: .75em;
+}
+#cart {
+    background: rgba(0,0,0,0.1);
+    height: 100%;
+    left: 50%;
+    padding: 1em;
+    position: fixed;
+    top: 0;
+    visibility: hidden;
+    width: 50%;
+}
+</style>
+</head>
+<body>
+<strong>Page</strong>: <span id="product">Product A</span>
+<ol>
+    <li>
+        <strong>Open the cart overlay</strong><br/>
+        Add to the browser history using <code>pushState</code>: <button onclick="openCart()">Push State</button><br/>
+        This calls <code>window.V.init</code> for the first time.
+    </li>
+    <li>
+        <strong>Close the cart overlay</strong><br/>
+        This navigates back in history: <button onclick="closeCart()">Go Back</button>
+    </li>
+    <li>
+        <strong>Change the product style</strong><br/>
+        This results in a call to <code>replaceState</code>: <button onclick="changeProduct()">Replace State</button>
+    </li>
+    <li>
+        <strong>Open the cart overlay</strong><br/>
+        Add to the browser history using <code>pushState</code>: <button onclick="openCart()">Push State</button><br/>
+        This calls <code>window.V.init</code> for the second time.
+    </li>
+</ol>
+
+<div id="cart">
+</div>
+
+<script type="text/javascript" src="./env.js"></script>
+<script type="text/javascript">
+function openCart() {
+    window.history.pushState({ key: 1 }, 'Cart Overlay', '?overlay=cart');
+
+	const cart = document.getElementById('cart');
+	cart.style.visibility = 'visible';
+	cart.innerHTML =
+		'<em>Placeholder for the Cart Overlay</em><br/>' + '\n' +
+		`<img alt="Visa Checkout" class="v-button" role="button" src="https://sandbox.secure.checkout.visa.com/wallet-services-web/xo/button.png"/>`;
+
+	const options = {
+		apikey: API_KEY,
+		externalProfileId: CLIENT_ID,
+		paymentRequest: {
+			currencyCode: 'CAD',
+			discount: 0,
+			promoCode: '',
+			subtotal: 95
+		},
+		settings: {
+			countryCode: 'ca',
+			externalProfileId: CLIENT_ID,
+			locale: 'en_CA',
+			payment: {
+				acceptCanadianVisaDebit: true,
+				cardBrands: [
+					'VISA',
+					'AMEX',
+					'MASTERCARD',
+					'DISCOVER'
+				]
+			},
+			shipping: {
+				collectShipping: true
+			}
+		}
+	};
+	window.V.init(options);
+}
+
+function closeCart() {
+    window.history.back();
+
+	const cart = document.getElementById('cart');
+	cart.style.visibility = 'hidden';
+	cart.innerHTML = '';
+}
+
+function changeProduct() {
+    window.history.replaceState({ key: 2 }, 'Product B', '/p/:newProductId')
+    document.getElementById('product').innerText = 'Product B';
+}
+
+window.history.replaceState({ key: 2 }, 'Product A', '/p/:productId')
+</script>
+<script type="text/javascript" src="https://sandbox-assets.secure.checkout.visa.com/checkout-widget/resources/js/integration/v1/sdk.js"></script>
+</body>
+</html>
