@@ -20,11 +20,17 @@ li + li {
     visibility: hidden;
     width: 50%;
 }
+
+#visa-checkout-staging { display: none; }
 </style>
 </head>
 <body>
 <strong>Page</strong>: <span id="product">Product A</span>
 <ol>
+	<li class="workaround">
+		<strong>Render the Visa Checkout button on the DOM</strong><br/>
+		We'll make it hidden. <button onclick="renderVisaCheckoutButton(event)">Render</button>
+	</li>
     <li>
         <strong>Open the cart overlay</strong><br/>
         Add to the browser history using <code>pushState</code>: <button onclick="openCart()">Push State</button><br/>
@@ -46,18 +52,23 @@ li + li {
 </ol>
 
 <div id="cart">
+	<em>Placeholder for the Cart Overlay</em><br/>
+	<div id="visa-checkout-container"></div>
 </div>
+
+<div id="visa-checkout-staging"></div>
 
 <script type="text/javascript" src="./env.js"></script>
 <script type="text/javascript">
-function openCart() {
-    window.history.pushState({ key: 1 }, 'Cart Overlay', '?overlay=cart');
+function renderVisaCheckoutButton(event) {
+	const el = document.createElement('img');
+	el.alt = 'Visa Checkout'; // Localized
+	el.className = 'v-button';
+	el.setAttribute('role', 'button');
+	el.src = 'https://sandbox.secure.checkout.visa.com/wallet-services-web/xo/button.png';
 
-	const cart = document.getElementById('cart');
-	cart.style.visibility = 'visible';
-	cart.innerHTML =
-		'<em>Placeholder for the Cart Overlay</em><br/>' + '\n' +
-		`<img alt="Visa Checkout" class="v-button" role="button" src="https://sandbox.secure.checkout.visa.com/wallet-services-web/xo/button.png"/>`;
+	const parent = document.getElementById('visa-checkout-staging');
+	parent.insertAdjacentElement('afterbegin', el);
 
 	const options = {
 		apikey: API_KEY,
@@ -87,6 +98,19 @@ function openCart() {
 		}
 	};
 	window.V.init(options);
+
+	event.target.setAttribute('disabled', 'disabled');
+}
+
+function openCart() {
+    window.history.pushState({ key: 1 }, 'Cart Overlay', '?overlay=cart');
+
+	const cart = document.getElementById('cart');
+	cart.style.visibility = 'visible';
+
+	const cartParent = document.getElementById('visa-checkout-container');
+	const el = document.querySelector('#visa-checkout-staging .v-button');
+	cartParent.insertAdjacentElement('afterbegin', el);
 }
 
 function closeCart() {
@@ -94,7 +118,10 @@ function closeCart() {
 
 	const cart = document.getElementById('cart');
 	cart.style.visibility = 'hidden';
-	cart.innerHTML = '';
+
+	const newParent = document.getElementById('visa-checkout-staging');
+	const el = cart.querySelector('#visa-checkout-container .v-button');
+	newParent.insertAdjacentElement('afterbegin', el);
 }
 
 function changeProduct() {
